@@ -115,14 +115,12 @@ const QuestionBox = () => {
             >
               {quiz.answers.map(async (q) => {
                 return (
-                  // <Suspense fallback={"loading..."}>
                   <Question
                     key={q.id + uuid4()}
                     data={q}
                     handleSelectAnswer={() => handleSelectAnswer(q.id)}
                     activeAnswer={activeAnswer}
                   />
-                  // </Suspense>
                 );
               })}
             </div>
