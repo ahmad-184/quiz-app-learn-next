@@ -1,4 +1,4 @@
-export default function Loading(props) {
+export default function Loading() {
   return (
     <div>
       <h4>درحال بارگذاری</h4>
