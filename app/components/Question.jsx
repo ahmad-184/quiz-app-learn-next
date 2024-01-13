@@ -1,13 +1,12 @@
 import { memo } from "react";
-import styles from "@/app/styles/question.module.css";
 
 const Question = ({
   data,
   showResult,
   handleSelectAnswer,
-  activeAnswer,
   selectedAnswer,
   correctAnswer,
+  activeAnswer,
 }) => {
   const { text, id } = data;
 
@@ -15,12 +14,16 @@ const Question = ({
     <>
       {!showResult && (
         <div
-          className={`${styles.box} ${
-            activeAnswer === id && styles.box_active
+          className={`p-3 rounded-lg hover:cursor-pointer ${
+            id === activeAnswer ? "bg-gray-300" : "bg-gray-700"
           }`}
           onClick={handleSelectAnswer}
         >
-          <p>{text}</p>
+          <p
+            className={id === activeAnswer ? "text-gray-900" : "text-gray-200"}
+          >
+            {text}
+          </p>
         </div>
       )}
       {showResult &&
@@ -32,27 +35,17 @@ const Question = ({
 
           return (
             <div
-              className={
+              className={`
+                flex justify-between items-center p-4 rounded-lg select-none 
+              ${
                 isThisCorrectAnswer
-                  ? styles.correct
+                  ? "bg-emerald-600"
                   : isAnswerWrong
-                  ? styles.wrong
-                  : ""
-              }
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "15px",
-                borderRadius: "10px",
-                userSelect: "none",
-                ...(!isAnswerWrong &&
-                  !isThisCorrectAnswer && {
-                    backgroundColor: "#232323",
-                  }),
-              }}
+                  ? "bg-rose-700"
+                  : "bg-gray-700"
+              }`}
             >
-              <p>{text}</p>
+              <p className="text-gray-200">{text}</p>
             </div>
           );
         })()}

@@ -16,7 +16,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="fa-IR" dir="rtl">
-      <body className={`${rubic.className} ${baloo.className} container`}>
+      <body
+        className={`${rubic.className} ${baloo.className} container m-auto px-3 max-w-xl
+          bg-gray-900 h-full
+        `}
+      >
         <Logo />
         {children}
       </body>

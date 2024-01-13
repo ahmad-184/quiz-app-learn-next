@@ -1,27 +1,32 @@
 "use client";
-import { Suspense, useEffect, useState, useCallback, useMemo } from "react";
+import { Suspense, useState, useMemo, memo } from "react";
 import Link from "next/link";
 import { v4 as uuid4 } from "uuid";
 
 import quiz_data from "@/app/constants/quiz_data";
 import Question from "./Question";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
+import Skeleton from "./LoadingSkeleton";
 
-// const fakeTimeStop = () =>
-//   new Promise((resolve) =>
-//     setTimeout(resolve, parseFloat(Math.floor(Math.random() * 5000)))
-//   );
+const fakeTimeStop = async () =>
+  new Promise((resolve) =>
+    setTimeout(resolve, parseFloat(Math.floor(Math.random() * 5000)))
+  );
+
+const SuspensedComp = memo(({ Wrapper, ...props }) => {
+  return (
+    <>
+      <Suspense fallback={<Skeleton />}>
+        <Wrapper {...props} />
+      </Suspense>
+    </>
+  );
+});
 
 const QuestionBox = () => {
   const [activeQues, setActiveQues] = useState(0);
   const [activeAnswer, setActiveAnswer] = useState(null);
   const [showResult, setShowResult] = useState(false);
-  // const [result, setResult] = useState({
-  //   answered: [],
-  //   score: 0,
-  //   correct: 0,
-  //   wrong: 0,
-  // });
   const [finalResult, setFinalResult] = useState({
     answered: [],
     score: 0,
@@ -29,15 +34,9 @@ const QuestionBox = () => {
     wrong: 0,
   });
 
-  useEffect(() => {
-    setTimeout(() => {
-      setActiveAnswer(2);
-    }, 5000);
-  }, []);
-
   const quiz = useMemo(() => quiz_data.questions[activeQues], [activeQues]);
 
-  const handleSelectAnswer = useCallback((id) => {
+  const handleSelectAnswer = (id) => {
     setActiveAnswer(id);
     const question_existed = finalResult.answered.find((q) => q.id === quiz.id);
     if (question_existed) {
@@ -67,15 +66,15 @@ const QuestionBox = () => {
         ],
       });
     }
-  }, []);
+  };
 
-  const handleNextquestion = useCallback(() => {
+  const handleNextquestion = () => {
     setActiveAnswer(null);
     if (activeQues === quiz_data.questions.length - 1) return;
     setActiveQues(activeQues + 1);
-  }, []);
+  };
 
-  const handleShowResult = useCallback(() => {
+  const handleShowResult = () => {
     let correctCount = 0;
     let wrongCount = 0;
     for (const item of finalResult.answered) {
@@ -88,53 +87,37 @@ const QuestionBox = () => {
       wrong: wrongCount,
     });
     setShowResult(true);
-  }, []);
+  };
 
   return (
     <>
-      <section>
+      <section className="p-4 bg-gray-800 rounded-lg">
         {showResult && finalResult.answered.length && (
-          <div style={{ marginBottom: "1.5rem", color: "whitesmoke" }}>
-            <h2 style={{ marginBottom: "10px" }}>نتایج</h2>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <p>پاسخ های صحیح: {finalResult.correct}</p>
-              <p>پاسخ های غلط: {finalResult.wrong}</p>
+          <>
+            <div className="mb-5 text-zinc-200">
+              <h2 className="mb-3 text-2xl">نتایج</h2>
+              <div className="flex items-center gap-4">
+                <p>پاسخ های صحیح: {finalResult.correct}</p>
+                <p>پاسخ های غلط: {finalResult.wrong}</p>
+              </div>
             </div>
-          </div>
+            <div className="mb-4 w-full h-[0.5px] rounded-xl bg-gray-500" />
+          </>
         )}
         {!showResult && (
           <>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-                marginBottom: "1rem",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "1rem",
-                  alignItems: "center",
-                }}
-              >
-                <p style={{ fontSize: 19 }}>{quiz.question} ؟</p>
-                <p style={{ fontSize: 19 }}>
+            <div className="flex flex-col gap-4 mb-4">
+              <div className="flex justify-between align-middle">
+                <p className="text-gray-100 text-lg">{quiz.question} ؟</p>
+                <p className="text-gray-100 text-lg">
                   {activeQues + 1}/{quiz_data.questions.length}
                 </p>
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                {quiz.answers.map(async (q) => {
+              <div className="flex flex-col gap-3">
+                {quiz.answers.map((q) => {
                   return (
-                    <Question
+                    <SuspensedComp
+                      Wrapper={Question}
                       key={q.id + uuid4()}
                       data={q}
                       handleSelectAnswer={() => handleSelectAnswer(q.id)}
@@ -147,26 +130,18 @@ const QuestionBox = () => {
           </>
         )}
         {showResult && finalResult.answered.length && (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
-          >
-            {finalResult.answered.map((q) => (
+          <div className="flex flex-col gap-8">
+            {finalResult.answered.map((q, index) => (
               <div key={q.id + uuid4()}>
-                <p style={{ fontSize: 19, marginBottom: "10px" }}>
-                  {q.question} ؟
+                <p className="text-lg mb-3 text-gray-200">
+                  {index + 1} - {q.question} ؟
                 </p>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                  }}
-                >
+                <div className="flex flex-col gap-2">
                   {q.answers.map((answer) => (
                     <Question
                       key={q.id + uuid4()}
-                      data={answer}
                       showResult={showResult}
+                      data={answer}
                       selectedAnswer={q.selectedAnswer}
                       correctAnswer={q.correctAnswer}
                     />
@@ -181,11 +156,7 @@ const QuestionBox = () => {
             <div>
               <span
                 onClick={handleNextquestion}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                }}
+                className="flex align-middle cursor-pointer text-gray-200"
               >
                 <CaretRight size={24} />
                 بعدی
@@ -195,21 +166,12 @@ const QuestionBox = () => {
         {activeAnswer !== null &&
           !showResult &&
           activeQues === quiz_data.questions.length - 1 && (
-            <div style={{ width: "100%", textAlign: "center" }}>
+            <div className="w-full text-center">
               <button
-                style={{
-                  width: "100%",
-                  color: "rgb(33, 33, 33)",
-                  backgroundColor: "whitesmoke",
-                  padding: 8,
-                  borderRadius: 9,
-                  fontWeight: "500",
-                  fontFamily: "inherit",
-                  fontSize: 16,
-                  border: "none",
-                  outline: "none",
-                  cursor: "pointer",
-                }}
+                className="w-full text-gray-200 bg-gray-900 rounded-xl font-medium text-base border-none
+                outline-none cursor-pointer
+                py-3 hover:bg-gray-800 transition-colors duration-200
+              "
                 onClick={handleShowResult}
               >
                 دیدن نتایج
@@ -217,23 +179,18 @@ const QuestionBox = () => {
             </div>
           )}
         {showResult && finalResult.answered.length && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "2rem",
-              marginTop: "1.5rem",
-              justifyContent: "center",
-            }}
-          >
+          <div className="flex items-center gap-8 mt-6 justify-center">
             <p
               onClick={() => window.location.reload()}
               style={{ cursor: "pointer", textDecoration: "underline" }}
+              className="cursor-pointer underline text-zinc-200"
             >
               دوباره امتحان میکنم
             </p>
 
-            <Link href={"/"}>بازگشت به خانه</Link>
+            <Link href={"/"} className="text-zinc-200">
+              بازگشت به خانه
+            </Link>
           </div>
         )}
       </section>
